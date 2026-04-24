@@ -3,7 +3,7 @@ import { useNutritionStore } from "@/store/useNutritionStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button";
 import { User, Target, Bell, Shield, LogOut, Calculator, Scale, Ruler, Activity, Leaf, Beef } from "lucide-react";
 import { motion } from "framer-motion";
 

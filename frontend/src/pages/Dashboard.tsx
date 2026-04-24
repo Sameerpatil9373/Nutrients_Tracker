@@ -14,7 +14,7 @@ import {
 } from "recharts";
 import { useNutritionStore } from "@/store/useNutritionStore";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button";
 import { useMemo } from "react";
 
 const NutrientProgress = ({ label, current, goal, color, unit = "g" }: any) => {
