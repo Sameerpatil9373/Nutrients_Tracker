@@ -1,0 +1,16 @@
+export const foods = [
+  { name: "Maggi", calories: 350, protein: 8 },
+  { name: "Paneer", calories: 265, protein: 18 },
+  { name: "Milk", calories: 150, protein: 8 },
+  { name: "Egg", calories: 78, protein: 6 },
+  { name: "Rice", calories: 206, protein: 4 },
+  { name: "Roti", calories: 104, protein: 3 },
+  { name: "Dal", calories: 150, protein: 10 },
+  { name: "Banana", calories: 89, protein: 1 },
+  { name: "Apple", calories: 72, protein: 0 },
+  { name: "Carrot", calories: 41, protein: 1 },
+  { name: "Potato", calories: 77, protein: 2 },
+  { name: "Chicken Breast", calories: 165, protein: 31 },
+  { name: "Peanut Butter", calories: 188, protein: 8 },
+  { name: "Oats", calories: 150, protein: 5 },
+];
