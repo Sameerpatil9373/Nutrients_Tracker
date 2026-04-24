@@ -11,33 +11,43 @@ export default function Scanner() {
 
   useEffect(() => {
     const codeReader = new BrowserMultiFormatReader();
-
+    let controls: any = null;
     let active = true;
 
-    codeReader.decodeFromVideoDevice(
-      undefined,
-      videoRef.current!,
-      (result, err) => {
-        if (result && active) {
-          active = false;
+    const startScanner = async () => {
+      try {
+        controls = await codeReader.decodeFromVideoDevice(
+          undefined,
+          videoRef.current!,
+          (result, err) => {
+            if (result && active) {
+              active = false;
 
-          const barcode = result.getText();
-          console.log("Scanned:", barcode);
+              const barcode = result.getText();
+              console.log("Scanned:", barcode);
 
-          // stop scanner immediately
-          codeReader.stopContinuousDecode();
+              // stop scanner immediately
+              if (controls) controls.stop();
 
-          navigate(`/add?barcode=${barcode}`);
-        }
+              navigate(`/add?barcode=${barcode}`);
+            }
+          }
+        );
+      } catch (error) {
+        console.error("Failed to start scanner:", error);
       }
-    );
+    };
+
+    startScanner();
 
     return () => {
       active = false;
-      try {
-        codeReader.stopContinuousDecode(); // ✅ correct cleanup
-      } catch (e) {
-        console.log("Scanner cleanup safe");
+      if (controls) {
+        try {
+          controls.stop();
+        } catch (e) {
+          console.log("Scanner cleanup safe");
+        }
       }
     };
   }, []);
