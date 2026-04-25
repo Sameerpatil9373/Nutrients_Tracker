@@ -5,42 +5,56 @@ const passport = require('passport');
 // @desc    Google OAuth
 // @route   GET /api/auth/google
 // @access  Public
-exports.googleAuth = passport.authenticate('google', { scope: ['profile', 'email'] });
+exports.googleAuth = passport.authenticate('google', {
+  scope: ['profile', 'email']
+});
 
 // @desc    Google OAuth callback
 // @route   GET /api/auth/google/callback
 // @access  Public
 exports.googleCallback = (req, res, next) => {
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  const redirectBase = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
+  const redirectBase = frontendUrl.endsWith('/')
+    ? frontendUrl.slice(0, -1)
+    : frontendUrl;
 
-  passport.authenticate('google', { session: false }, (err, user, info) => {
-    if (err || !user) {
-      console.error("Google Auth Error:", err || info);
-      const errorMsg = err ? encodeURIComponent(err.message) : (info ? encodeURIComponent(info.message || 'auth_failed') : 'unknown_error');
-      return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=${errorMsg}`);
-    }
-
-    // Now that we have the user, generate the token
+  passport.authenticate('google', { session: false }, async (err, user, info) => {
     try {
+      // ❌ ERROR CASE
+      if (err || !user) {
+        console.error("Google Auth Error:", err || info);
+        return res.redirect(`${redirectBase}/login?error=google_auth_failed`);
+      }
+
+      // 🔥 Ensure user exists (safety, even if passport handled it)
+      let existingUser = await User.findOne({ email: user.email });
+
+      if (!existingUser) {
+        existingUser = await User.create({
+          name: user.name || user.displayName,
+          email: user.email,
+          password: "google_login"
+        });
+      }
+
+      // 🔐 Generate JWT
       if (!process.env.JWT_SECRET) {
-        console.error("JWT_SECRET is missing");
-        return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=missing_jwt_secret`);
+        console.error("JWT_SECRET missing");
+        return res.redirect(`${redirectBase}/login?error=google_auth_failed`);
       }
 
       const token = jwt.sign(
-        { id: user._id },
+        { id: existingUser._id },
         process.env.JWT_SECRET,
-        {
-          expiresIn: process.env.JWT_EXPIRE || '30d',
-        }
+        { expiresIn: process.env.JWT_EXPIRE || '30d' }
       );
 
-      // ✅ SUCCESS REDIRECT
+      // ✅ SUCCESS
       return res.redirect(`${redirectBase}/login?token=${token}`);
-    } catch (tokenErr) {
-      console.error("Token Generation Error:", tokenErr);
-      return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=token_error`);
+
+    } catch (error) {
+      console.error("Callback Error:", error);
+      return res.redirect(`${redirectBase}/login?error=google_auth_failed`);
     }
   })(req, res, next);
 };
@@ -48,7 +62,7 @@ exports.googleCallback = (req, res, next) => {
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
-exports.register = async (req, res, next) => {
+exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
@@ -70,7 +84,7 @@ exports.register = async (req, res, next) => {
 // @desc    Login user
 // @route   POST /api/auth/login
 // @access  Public
-exports.login = async (req, res, next) => {
+exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -113,12 +127,12 @@ const sendTokenResponse = (user, statusCode, res) => {
   const token = jwt.sign(
     { id: user._id },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRE }
+    { expiresIn: process.env.JWT_EXPIRE || '30d' }
   );
 
   const options = {
     expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000
+      Date.now() + (process.env.JWT_COOKIE_EXPIRE || 30) * 24 * 60 * 60 * 1000
     ),
     httpOnly: true,
   };
@@ -141,7 +155,7 @@ const sendTokenResponse = (user, statusCode, res) => {
 // @desc    Get current user
 // @route   GET /api/auth/me
 // @access  Private
-exports.getMe = async (req, res, next) => {
+exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
 
