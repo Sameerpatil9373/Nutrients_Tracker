@@ -20,5 +20,8 @@ router.get('/google/callback', googleCallback);
 router.get('/test', (req, res) => {
   res.send("API working 🚀");
 });
+router.get('/google-test', (req, res) => {
+  res.send("Google route working");
+});
 
 module.exports = router;
