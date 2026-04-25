@@ -39,21 +39,22 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
-    if (process.env.MONGO_URI && process.env.MONGO_URI.trim() !== '') {
-      await mongoose.connect(process.env.MONGO_URI);
-      console.log('MongoDB Connected...');
-    } else {
-      console.log('⚠️ MongoDB URI not found');
+    if (!process.env.MONGO_URI || process.env.MONGO_URI.trim() === '') {
+      throw new Error('MONGO_URI is not defined in environment variables');
     }
+    
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('✅ MongoDB Connected...');
 
     app.listen(PORT, () => {
       console.log(`✅ Server running on port ${PORT}`);
     });
 
   } catch (err) {
-    console.error(`❌ Error: ${err.message}`);
+    console.error(`❌ Server Initialization Error: ${err.message}`);
+    // Still start server to serve the status route even if DB fails
     app.listen(PORT, () => {
-      console.log(`✅ Server running on port ${PORT}`);
+      console.log(`⚠️ Server running on port ${PORT} (Database connection failed)`);
     });
   }
 };

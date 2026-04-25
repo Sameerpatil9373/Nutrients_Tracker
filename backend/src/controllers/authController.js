@@ -22,7 +22,9 @@ exports.googleCallback = (req, res, next) => {
     });
 
     // Redirect to frontend with token
-    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?token=${token}`);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const redirectBase = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
+    res.redirect(`${redirectBase}/login?token=${token}`);
   })(req, res, next);
 };
 
