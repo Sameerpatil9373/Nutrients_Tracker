@@ -55,7 +55,8 @@ exports.googleCallback = (req, res, next) => {
 
     } catch (error) {
       console.error("Callback Error:", error);
-      return res.redirect(`${redirectBase}/login?error=google_auth_failed`);
+      const errorMsg = encodeURIComponent(error.message || 'database_error');
+      return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=${errorMsg}`);
     }
   })(req, res, next);
 };
