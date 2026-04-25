@@ -55,7 +55,7 @@ const Login = () => {
 
   const handleGoogleLogin = () => {
     const apiBase = API.endsWith('/') ? API.slice(0, -1) : API;
-    window.location.href = `${apiBase}/api/auth/google`;
+    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
