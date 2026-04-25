@@ -19,6 +19,9 @@ const authRoutes = require('./src/routes/authRoutes');
 
 const app = express();
 
+// Trust proxy (Required for Render/Heroku to handle HTTPS cookies)
+app.set('trust proxy', 1);
+
 // Body parser
 app.use(express.json());
 
@@ -28,9 +31,12 @@ app.use(cors());
 // Session middleware (Required for some Passport strategies even if not used)
 app.use(session({
   secret: process.env.SESSION_SECRET || 'keyboard cat',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: process.env.NODE_ENV === 'production' }
+  resave: true,
+  saveUninitialized: true,
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+  }
 }));
 
 // Passport middleware
@@ -49,6 +55,15 @@ app.get('/health', (req, res) => {
 
 // ✅ Mount routers
 app.use('/api/auth', authRoutes);
+
+// ✅ Global Error Handler
+app.use((err, req, res, next) => {
+  console.error("Global Error Handler:", err);
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const redirectBase = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
+  
+  res.redirect(`${redirectBase}/login?error=server_error&details=${encodeURIComponent(err.message)}`);
+});
 
 const PORT = process.env.PORT || 5000;
 
