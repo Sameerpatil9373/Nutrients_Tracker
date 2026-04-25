@@ -28,17 +28,27 @@ exports.googleCallback = (req, res, next) => {
       }
 
       // 🔥 Extract email
-      const email = profile.emails[0].value;
+      const email = profile.emails?.[0]?.value;
+      if (!email) {
+        return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=no_email_in_profile`);
+      }
 
       // 🔥 Find or create user
       let user = await User.findOne({ email });
 
       if (!user) {
         user = await User.create({
-          name: profile.displayName,
+          name: profile.displayName || 'Google User',
           email,
-          password: "google_login"
+          googleId: profile.id,
+          avatar: profile.photos?.[0]?.value || '',
+          password: Math.random().toString(36).slice(-10) // Random password for social login
         });
+      } else if (!user.googleId) {
+        // Link googleId if user exists but registered via email
+        user.googleId = profile.id;
+        if (!user.avatar) user.avatar = profile.photos?.[0]?.value || '';
+        await user.save();
       }
 
       // 🔥 Create token
