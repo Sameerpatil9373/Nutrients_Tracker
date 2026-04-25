@@ -12,8 +12,12 @@ exports.googleAuth = passport.authenticate('google', { scope: ['profile', 'email
 // @access  Public
 exports.googleCallback = (req, res, next) => {
   passport.authenticate('google', { session: false }, (err, user) => {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const redirectBase = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
+
     if (err || !user) {
-      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=google_auth_failed`);
+      console.error("Google Auth Error:", err);
+      return res.redirect(`${redirectBase}/login?error=google_auth_failed`);
     }
 
     // Create token
