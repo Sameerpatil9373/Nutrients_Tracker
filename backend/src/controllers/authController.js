@@ -11,35 +11,58 @@ exports.googleAuth = passport.authenticate('google', { scope: ['profile', 'email
 // @route   GET /api/auth/google/callback
 // @access  Public
 exports.googleCallback = (req, res, next) => {
-  passport.authenticate('google', { session: false }, (err, user) => {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const redirectBase = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
 
-    if (err || !user) {
-      console.error("Google Auth Error:", err);
+  // ✅ DEFINE ONCE (FIXED)
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const redirectBase = frontendUrl.endsWith('/')
+    ? frontendUrl.slice(0, -1)
+    : frontendUrl;
+
+  passport.authenticate('google', { session: false }, async (err, profile) => {
+    try {
+      if (err || !profile) {
+        console.error("Google Auth Error:", err);
+        return res.redirect(`${redirectBase}/login?error=google_auth_failed`);
+      }
+
+      // 🔥 Extract email
+      const email = profile.emails[0].value;
+
+      // 🔥 Find or create user
+      let user = await User.findOne({ email });
+
+      if (!user) {
+        user = await User.create({
+          name: profile.displayName,
+          email,
+          password: "google_login"
+        });
+      }
+
+      // 🔥 Create token
+      const token = jwt.sign(
+        { id: user._id },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRE }
+      );
+
+      // ✅ SUCCESS REDIRECT
+      return res.redirect(`${redirectBase}/login?token=${token}`);
+
+    } catch (error) {
+      console.error("Callback Error:", error);
       return res.redirect(`${redirectBase}/login?error=google_auth_failed`);
     }
-
-    // Create token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRE,
-    });
-
-    // Redirect to frontend with token
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const redirectBase = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
-    res.redirect(`${redirectBase}/login?token=${token}`);
   })(req, res, next);
 };
 
-// @desc    Login user
+// @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
 exports.register = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
-    // Create user
     const user = await User.create({
       name,
       email,
@@ -62,23 +85,29 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Validate email & password
     if (!email || !password) {
-      return res.status(400).json({ success: false, error: 'Please provide an email and password' });
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide an email and password'
+      });
     }
 
-    // Check for user
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
-      return res.status(401).json({ success: false, error: 'Invalid credentials' });
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials'
+      });
     }
 
-    // Check if password matches
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
-      return res.status(401).json({ success: false, error: 'Invalid credentials' });
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials'
+      });
     }
 
     sendTokenResponse(user, 200, res);
@@ -90,12 +119,13 @@ exports.login = async (req, res, next) => {
   }
 };
 
-// Get token from model, create cookie and send response
+// 🔐 Token helper
 const sendTokenResponse = (user, statusCode, res) => {
-  // Create token
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE,
-  });
+  const token = jwt.sign(
+    { id: user._id },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRE }
+  );
 
   const options = {
     expires: new Date(
@@ -119,7 +149,7 @@ const sendTokenResponse = (user, statusCode, res) => {
   });
 };
 
-// @desc    Get current logged in user
+// @desc    Get current user
 // @route   GET /api/auth/me
 // @access  Private
 exports.getMe = async (req, res, next) => {
