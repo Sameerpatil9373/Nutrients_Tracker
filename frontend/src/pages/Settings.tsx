@@ -264,9 +264,9 @@ export default function Settings() {
 
                 <Button
                   onClick={calculateTDEE}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white h-16 rounded-2xl font-black text-lg shadow-xl shadow-blue-500/20 transition-all active:scale-[0.98]"
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white h-14 sm:h-16 rounded-2xl font-black text-sm sm:text-lg shadow-xl shadow-blue-500/20 transition-all active:scale-[0.98] px-4"
                 >
-                  Save Changes & Calculate Optimal Goals
+                  Save & Calculate Optimal Goals
                 </Button>
               </Card>
             </div>

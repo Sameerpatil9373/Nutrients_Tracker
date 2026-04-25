@@ -121,10 +121,10 @@ export default function Dashboard() {
   }, [nutrients, goals, water, foods, calorieGoal]);
 
   const healthTip = useMemo(() => {
-    if (healthScore > 90) return { text: "You're in the elite 1%! Keep maintaining this consistency.", icon: <Heart className="text-red-400" size={14} /> };
-    if (healthScore > 70) return { text: "Great job today! A bit more water could boost your score further.", icon: <Droplets className="text-blue-400" size={14} /> };
-    if (healthScore > 40) return { text: "You're on the right track. Try adding more protein to your next meal.", icon: <Activity className="text-orange-400" size={14} /> };
-    return { text: "Let's start strong! Log your next meal to see your score improve.", icon: <Flame className="text-zinc-400" size={14} /> };
+    if (healthScore > 90) return { text: "You're in the elite 1%! Keep maintaining this consistency.", icon: <Heart className="text-red-400" size={24} /> };
+    if (healthScore > 70) return { text: "Great job today! A bit more water could boost your score further.", icon: <Droplets className="text-blue-400" size={24} /> };
+    if (healthScore > 40) return { text: "You're on the right track. Try adding more protein to your next meal.", icon: <Activity className="text-orange-400" size={24} /> };
+    return { text: "Let's start strong! Log your next meal to see your score improve.", icon: <Flame className="text-zinc-400" size={24} /> };
   }, [healthScore]);
 
   return (
@@ -183,9 +183,9 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* 🔥 Main Calorie Card */}
               <Card className="bg-white/5 border-white/10 p-8 rounded-[40px] backdrop-blur-2xl relative overflow-hidden group h-full">
-                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <Flame size={120} className="text-orange-500" />
-                </div>
+            <div className="absolute top-3 right-3 opacity-30 group-hover:opacity-20 transition-opacity pointer-events-none">
+  <Flame className="text-orange-500 w-[clamp(24px,6vw,80px)] h-[clamp(24px,6vw,80px)]" />
+</div>
                 
                 <div className="flex flex-col items-center relative z-10 h-full justify-between">
                   <div className="relative w-64 h-64 mb-8">
