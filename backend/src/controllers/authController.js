@@ -14,44 +14,20 @@ exports.googleCallback = (req, res, next) => {
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
   const redirectBase = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
 
-  passport.authenticate('google', { session: false }, async (err, profile, info) => {
-    try {
-      if (err || !profile) {
-        console.error("Google Auth Error:", err || info);
-        const errorMsg = err ? encodeURIComponent(err.message) : (info ? encodeURIComponent(info.message) : 'unknown_error');
-        return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=${errorMsg}`);
-      }
+  passport.authenticate('google', { session: false }, (err, user, info) => {
+    if (err || !user) {
+      console.error("Google Auth Error:", err || info);
+      const errorMsg = err ? encodeURIComponent(err.message) : (info ? encodeURIComponent(info.message || 'auth_failed') : 'unknown_error');
+      return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=${errorMsg}`);
+    }
 
+    // Now that we have the user, generate the token
+    try {
       if (!process.env.JWT_SECRET) {
         console.error("JWT_SECRET is missing");
         return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=missing_jwt_secret`);
       }
 
-      // 🔥 Extract email
-      const email = profile.emails?.[0]?.value;
-      if (!email) {
-        return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=no_email_in_profile`);
-      }
-
-      // 🔥 Find or create user
-      let user = await User.findOne({ email });
-
-      if (!user) {
-        user = await User.create({
-          name: profile.displayName || 'Google User',
-          email,
-          googleId: profile.id,
-          avatar: profile.photos?.[0]?.value || '',
-          password: Math.random().toString(36).slice(-10) // Random password for social login
-        });
-      } else if (!user.googleId) {
-        // Link googleId if user exists but registered via email
-        user.googleId = profile.id;
-        if (!user.avatar) user.avatar = profile.photos?.[0]?.value || '';
-        await user.save();
-      }
-
-      // 🔥 Create token
       const token = jwt.sign(
         { id: user._id },
         process.env.JWT_SECRET,
@@ -62,11 +38,9 @@ exports.googleCallback = (req, res, next) => {
 
       // ✅ SUCCESS REDIRECT
       return res.redirect(`${redirectBase}/login?token=${token}`);
-
-    } catch (error) {
-      console.error("Callback Error:", error);
-      const errorMsg = encodeURIComponent(error.message || 'database_error');
-      return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=${errorMsg}`);
+    } catch (tokenErr) {
+      console.error("Token Generation Error:", tokenErr);
+      return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=token_error`);
     }
   })(req, res, next);
 };
