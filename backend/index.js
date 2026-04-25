@@ -27,12 +27,23 @@ app.use(cors());
 // Passport middleware
 app.use(passport.initialize());
 
-// ✅ Mount routers (IMPORTANT)
+// ✅ TEST ROUTE (at the top)
+app.get('/', (req, res) => {
+  res.status(200).json({ message: "API is running 🚀", timestamp: new Date() });
+});
+
+// ✅ Health check
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
+// ✅ Mount routers
 app.use('/api/auth', authRoutes);
 
-// ✅ TEST ROUTE (optional but useful)
-app.get('/', (req, res) => {
-  res.send("API is running 🚀");
+// ✅ 404 Catch-all
+app.use((req, res) => {
+  console.log(`404 - Not Found: ${req.method} ${req.url}`);
+  res.status(404).send(`Route ${req.url} not found on this server.`);
 });
 
 const PORT = process.env.PORT || 5000;
