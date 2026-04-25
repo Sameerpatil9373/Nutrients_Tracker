@@ -7,6 +7,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const passport = require('passport');
+const session = require('express-session');
 
 // Load env vars
 dotenv.config();
@@ -24,8 +25,17 @@ app.use(express.json());
 // Enable CORS
 app.use(cors());
 
+// Session middleware (Required for some Passport strategies even if not used)
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'keyboard cat',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
+
 // Passport middleware
 app.use(passport.initialize());
+app.use(passport.session());
 
 // ✅ TEST ROUTE (at the top)
 app.get('/', (req, res) => {

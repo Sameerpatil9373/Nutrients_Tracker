@@ -46,40 +46,6 @@ exports.getMe = async (req, res) => {
   }
 };
 
-// @desc    Google OAuth
-// @route   GET /api/auth/google
-// @access  Public
-exports.googleAuth = passport.authenticate('google', { scope: ['profile', 'email'] });
-
-// @desc    Google OAuth callback
-// @route   GET /api/auth/google/callback
-// @access  Public
-exports.googleCallback = (req, res) => {
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  const redirectBase = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
-
-  try {
-    if (!req.user) {
-      return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=no_user_in_request`);
-    }
-
-    if (!process.env.JWT_SECRET) {
-      throw new Error('missing_jwt_secret');
-    }
-
-    const token = jwt.sign(
-      { id: req.user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE || '30d' }
-    );
-
-    return res.redirect(`${redirectBase}/login?token=${token}`);
-  } catch (tokenErr) {
-    console.error("Token Generation Error:", tokenErr);
-    return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=${encodeURIComponent(tokenErr.message)}`);
-  }
-};
-
 // Get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
