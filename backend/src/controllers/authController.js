@@ -11,18 +11,20 @@ exports.googleAuth = passport.authenticate('google', { scope: ['profile', 'email
 // @route   GET /api/auth/google/callback
 // @access  Public
 exports.googleCallback = (req, res, next) => {
-
-  // ✅ DEFINE ONCE (FIXED)
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  const redirectBase = frontendUrl.endsWith('/')
-    ? frontendUrl.slice(0, -1)
-    : frontendUrl;
+  const redirectBase = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
 
-  passport.authenticate('google', { session: false }, async (err, profile) => {
+  passport.authenticate('google', { session: false }, async (err, profile, info) => {
     try {
       if (err || !profile) {
-        console.error("Google Auth Error:", err);
-        return res.redirect(`${redirectBase}/login?error=google_auth_failed`);
+        console.error("Google Auth Error:", err || info);
+        const errorMsg = err ? encodeURIComponent(err.message) : (info ? encodeURIComponent(info.message) : 'unknown_error');
+        return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=${errorMsg}`);
+      }
+
+      if (!process.env.JWT_SECRET) {
+        console.error("JWT_SECRET is missing");
+        return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=missing_jwt_secret`);
       }
 
       // 🔥 Extract email
@@ -43,7 +45,9 @@ exports.googleCallback = (req, res, next) => {
       const token = jwt.sign(
         { id: user._id },
         process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRE }
+        {
+          expiresIn: process.env.JWT_EXPIRE || '30d',
+        }
       );
 
       // ✅ SUCCESS REDIRECT
