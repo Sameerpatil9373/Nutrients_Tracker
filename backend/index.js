@@ -2,7 +2,6 @@ const dns = require("node:dns");
 // Set custom DNS servers (Cloudflare + Google)
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
-
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
@@ -22,14 +21,19 @@ const app = express();
 // Body parser
 app.use(express.json());
 
-// Passport middleware
-app.use(passport.initialize());
-
 // Enable CORS
 app.use(cors());
 
-// Mount routers
+// Passport middleware
+app.use(passport.initialize());
+
+// ✅ Mount routers (IMPORTANT)
 app.use('/api/auth', authRoutes);
+
+// ✅ TEST ROUTE (optional but useful)
+app.get('/', (req, res) => {
+  res.send("API is running 🚀");
+});
 
 const PORT = process.env.PORT || 5000;
 
@@ -39,17 +43,17 @@ const startServer = async () => {
       await mongoose.connect(process.env.MONGO_URI);
       console.log('MongoDB Connected...');
     } else {
-      console.log('⚠️  MongoDB URI not found — auth endpoints will fail until you add it to .env');
+      console.log('⚠️ MongoDB URI not found');
     }
 
     app.listen(PORT, () => {
-      console.log(`✅ Server running on http://localhost:${PORT}`);
+      console.log(`✅ Server running on port ${PORT}`);
     });
+
   } catch (err) {
     console.error(`❌ Error: ${err.message}`);
-    console.log('⚠️  Server started without database — auth will not work');
     app.listen(PORT, () => {
-      console.log(`✅ Server running on http://localhost:${PORT}`);
+      console.log(`✅ Server running on port ${PORT}`);
     });
   }
 };

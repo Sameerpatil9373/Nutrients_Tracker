@@ -54,7 +54,8 @@ const Login = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${API}/api/auth/google`;
+    const apiBase = API.endsWith('/') ? API.slice(0, -1) : API;
+    window.location.href = `${apiBase}/api/auth/google`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
