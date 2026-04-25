@@ -54,34 +54,30 @@ exports.googleAuth = passport.authenticate('google', { scope: ['profile', 'email
 // @desc    Google OAuth callback
 // @route   GET /api/auth/google/callback
 // @access  Public
-exports.googleCallback = (req, res, next) => {
+exports.googleCallback = (req, res) => {
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
   const redirectBase = frontendUrl.endsWith('/') ? frontendUrl.slice(0, -1) : frontendUrl;
 
-  passport.authenticate('google', { session: false }, (err, user, info) => {
-    if (err || !user) {
-      console.error("Google Auth Error:", err || info);
-      const errorMsg = err ? encodeURIComponent(err.message) : (info ? encodeURIComponent(info.message || 'auth_failed') : 'unknown_error');
-      return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=${errorMsg}`);
+  try {
+    if (!req.user) {
+      return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=no_user_in_request`);
     }
 
-    try {
-      if (!process.env.JWT_SECRET) {
-        throw new Error('missing_jwt_secret');
-      }
-
-      const token = jwt.sign(
-        { id: user._id },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRE || '30d' }
-      );
-
-      return res.redirect(`${redirectBase}/login?token=${token}`);
-    } catch (tokenErr) {
-      console.error("Token Generation Error:", tokenErr);
-      return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=${encodeURIComponent(tokenErr.message)}`);
+    if (!process.env.JWT_SECRET) {
+      throw new Error('missing_jwt_secret');
     }
-  })(req, res, next);
+
+    const token = jwt.sign(
+      { id: req.user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRE || '30d' }
+    );
+
+    return res.redirect(`${redirectBase}/login?token=${token}`);
+  } catch (tokenErr) {
+    console.error("Token Generation Error:", tokenErr);
+    return res.redirect(`${redirectBase}/login?error=google_auth_failed&details=${encodeURIComponent(tokenErr.message)}`);
+  }
 };
 
 // Get token from model, create cookie and send response

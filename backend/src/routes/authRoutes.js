@@ -12,7 +12,10 @@ router.get('/me', protect, getMe);
 
 // 🔥 Google OAuth
 router.get('/google', googleAuth);
-router.get('/google/callback', googleCallback);
+router.get('/google/callback', 
+  passport.authenticate('google', { session: false, failureRedirect: '/login?error=google_auth_failed' }),
+  googleCallback
+);
 
 // Test route
 router.get('/test', (req, res) => {
