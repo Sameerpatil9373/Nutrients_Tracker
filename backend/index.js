@@ -40,12 +40,6 @@ app.get('/health', (req, res) => {
 // ✅ Mount routers
 app.use('/api/auth', authRoutes);
 
-// ✅ 404 Catch-all
-app.use((req, res) => {
-  console.log(`404 - Not Found: ${req.method} ${req.url}`);
-  res.status(404).send(`Route ${req.url} not found on this server.`);
-});
-
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
