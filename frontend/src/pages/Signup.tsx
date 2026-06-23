@@ -44,6 +44,13 @@ const Signup = () => {
     }
   };
 
+  // ✅ Yahan hona chahiye yeh function (return ke bahar)
+  const handleGoogleLogin = () => {
+    const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const apiBase = API.endsWith('/') ? API.slice(0, -1) : API;
+    window.location.href = `${apiBase}/api/auth/google`;
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#09090b] p-4">
       <motion.div
@@ -113,10 +120,11 @@ const Signup = () => {
             </div>
           </div>
 
+          {/* ✅ Wapas Button component fix kar diya */}
           <Button 
             variant="outline" 
             className="w-full border-white/10 bg-white/5 hover:bg-white/10 text-white py-6 flex items-center gap-2"
-            onClick={() => alert('Google Signup coming soon!')}
+            onClick={handleGoogleLogin}
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path

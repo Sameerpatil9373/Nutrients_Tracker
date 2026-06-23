@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import { useAuthStore } from "./store/useAuthStore";
 import Layout from "./components/layout/Layout";
+import BarcodeDebug from "./pages/BarcodeDebug";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -24,6 +25,7 @@ function App() {
       <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/scanner" element={<ProtectedRoute><Scanner /></ProtectedRoute>} />
+      <Route path="/debug-barcode" element={<BarcodeDebug />} />
     </Routes>
   );
 }

@@ -184,7 +184,7 @@ export default function Dashboard() {
               {/* 🔥 Main Calorie Card */}
               <Card className="bg-white/5 border-white/10 p-8 rounded-[40px] backdrop-blur-2xl relative overflow-hidden group h-full">
             <div className="absolute top-3 right-3 opacity-30 group-hover:opacity-20 transition-opacity pointer-events-none">
-  <Flame className="text-orange-500 w-[clamp(24px,6vw,80px)] h-[clamp(24px,6vw,80px)]" />
+  <Flame className="text-orange-500 w-[clamp(21px,6vw,80px)] h-[clamp(24px,6vw,80px)]" />
 </div>
                 
                 <div className="flex flex-col items-center relative z-10 h-full justify-between">

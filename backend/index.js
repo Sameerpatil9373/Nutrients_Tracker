@@ -22,7 +22,10 @@ app.set('trust proxy', 1);
 app.use(express.json());
 
 // Enable CORS
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL, // Example: 'https://nutrients-tracker.vercel.app' (Peeche slash / mat lagana)
+  credentials: true // 👈 Cookies allow karne ke liye
+}));
 
 // Session middleware (Required for some Passport strategies even if not used)
 app.use(session({
